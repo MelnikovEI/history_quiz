@@ -26,15 +26,28 @@ def help_command(update: Update, context: CallbackContext) -> None:
 
 def reply(update: Update, context: CallbackContext, redis_db) -> None:
     """Echo the user message."""
+    user_question_number = redis_db.get(update.effective_user.id)
+    with open('quiz_qna.json', 'r', encoding='utf-8') as f:
+        questions = json.load(f)
+
     if update.message.text == 'New question':
-        with open('quiz_qna.json', 'r', encoding='utf-8') as f:
-            questions = json.load(f)
-        question = questions[randrange(len(questions))]['Вопрос']
-        update.message.reply_text(question)
-        redis_db.set(update.effective_user.id, question)
-        print(redis_db.get(update.effective_user.id))
-    else:
-        update.message.reply_text(update.message.text)
+        question_number = randrange(len(questions))
+        update.message.reply_text(questions[question_number]['Вопрос'])
+        redis_db.set(update.effective_user.id, question_number)
+        return
+    elif update.message.text == 'Give up':
+        redis_db.delete(update.effective_user.id)
+        update.message.reply_text('Вы сдались :(')
+        return
+    elif update.message.text == 'My score':
+        update.message.reply_text('Ваш счёт: ')
+        return
+    elif user_question_number:
+        if str(questions[int(user_question_number)]['Ответ']).lower().strip('" .')\
+                == update.message.text.lower().strip('" .'):
+            update.message.reply_text('Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»')
+        else:
+            update.message.reply_text('Неправильно… Попробуешь ещё раз?')
 
 
 def main() -> None:
