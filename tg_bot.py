@@ -85,7 +85,7 @@ def main() -> None:
     env.read_env()
     updater = Updater(env('TG_BOT_TOKEN'))
 
-    with open('quiz_qna.json', 'r', encoding='utf-8') as questions_file:
+    with open(env('QUESTIONS_FILE'), 'r', encoding='utf-8') as questions_file:
         questions = json.load(questions_file)
 
     redis_db = redis.Redis(
