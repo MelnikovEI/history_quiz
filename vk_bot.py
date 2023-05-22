@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from random import randrange, randint
 import redis
 import telegram
@@ -22,7 +23,7 @@ def main() -> None:
     vk_session = vk.VkApi(token=env('VK_GROUP_TOKEN'))
     vk_api = vk_session.get_api()
 
-    with open(env('QUESTIONS_FILE'), 'r', encoding='utf-8') as questions_file:
+    with open(os.path.join(env('QUESTIONS_FILE')), 'r', encoding='utf-8') as questions_file:
         questions = json.load(questions_file)
 
     redis_db = redis.Redis(
