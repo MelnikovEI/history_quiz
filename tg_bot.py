@@ -87,7 +87,7 @@ def cancel(update: Update, context: CallbackContext) -> int:
 def main() -> None:
     updater = Updater(env('TG_BOT_TOKEN'))
 
-    with open(os.path.join(env('QUESTIONS_FILE')), 'r', encoding='utf-8') as questions_file:
+    with open(os.path.join(os.getcwd(), env('QUESTIONS_FILE')), 'r', encoding='utf-8') as questions_file:
         questions = json.load(questions_file)
 
     redis_db = redis.Redis(
