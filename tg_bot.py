@@ -1,12 +1,15 @@
 import json
 import logging
 from random import randrange
+import telegram
 from environs import Env
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 import redis
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+from telegram_logs_handler import TelegramLogsHandler
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 NEW_QUESTION_REQUEST, ANSWER, GIVE_UP, END = range(4)
@@ -81,8 +84,6 @@ def cancel(update: Update, context: CallbackContext) -> int:
 
 
 def main() -> None:
-    env = Env()
-    env.read_env()
     updater = Updater(env('TG_BOT_TOKEN'))
 
     with open(env('QUESTIONS_FILE'), 'r', encoding='utf-8') as questions_file:
@@ -130,4 +131,19 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    env = Env()
+    env.read_env()
+
+    tg_admin_bot_token = env('TG_ADMIN_BOT_TOKEN')
+    chat_id = env('ADMIN_CHAT_ID')
+    admin_bot = telegram.Bot(token=tg_admin_bot_token)
+
+    adm_logger = logging.getLogger(__file__)
+    adm_logger.setLevel(logging.WARNING)
+    adm_logger.addHandler(TelegramLogsHandler(admin_bot, chat_id))
+
+    try:
+        main()
+    except Exception as err:
+        adm_logger.error(err, exc_info=True)
+
