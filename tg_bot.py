@@ -10,7 +10,6 @@ import redis
 
 from telegram_logs_handler import TelegramLogsHandler
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 NEW_QUESTION_REQUEST, ANSWER, GIVE_UP, END = range(4)
@@ -85,6 +84,8 @@ def cancel(update: Update, context: CallbackContext) -> int:
 
 
 def main() -> None:
+    logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.WARNING)
+    
     env = Env()
     env.read_env()
 
