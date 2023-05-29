@@ -85,57 +85,6 @@ def cancel(update: Update, context: CallbackContext) -> int:
 
 
 def main() -> None:
-    updater = Updater(env('TG_BOT_TOKEN'))
-
-    with open(
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), env('QUESTIONS_FILE')),
-            'r',
-            encoding='utf-8'
-    ) as questions_file:
-        questions = json.load(questions_file)
-
-    redis_db = redis.Redis(
-        host=env('REDIS_HOST'), port=env('REDIS_PORT'), username=env('REDIS_USERNAME'),
-        password=env('REDIS_PASSWORD'),
-        decode_responses=True
-    )
-    dp = updater.dispatcher
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start)],
-        states={
-            NEW_QUESTION_REQUEST: [
-                MessageHandler(
-                    Filters.text & ~Filters.command,
-                    callback=lambda update, context: handle_new_question_request(update, context, redis_db, questions)
-                )
-            ],
-            ANSWER: [
-                MessageHandler(
-                    Filters.regex('^Give up$'),
-                    callback=lambda update, context: give_up(update, context, redis_db, questions)
-                ),
-                MessageHandler(
-                    Filters.text & ~Filters.command,
-                    callback=lambda update, context: handle_solution_attempt(update, context, redis_db, questions)
-                ),
-            ],
-            GIVE_UP: [
-                MessageHandler(
-                    Filters.text & ~Filters.command,
-                    callback=lambda update, context: give_up(update, context, redis_db, questions),
-                ),
-            ],
-
-        },
-        fallbacks=[CommandHandler('cancel', cancel)]
-    )
-
-    dp.add_handler(conv_handler)
-    updater.start_polling()
-    updater.idle()
-
-
-if __name__ == '__main__':
     env = Env()
     env.read_env()
 
@@ -148,6 +97,57 @@ if __name__ == '__main__':
     adm_logger.addHandler(TelegramLogsHandler(admin_bot, chat_id))
 
     try:
-        main()
+        updater = Updater(env('TG_BOT_TOKEN'))
+
+        with open(
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), env('QUESTIONS_FILE')),
+                'r',
+                encoding='utf-8'
+        ) as questions_file:
+            questions = json.load(questions_file)
+
+        redis_db = redis.Redis(
+            host=env('REDIS_HOST'), port=env('REDIS_PORT'), username=env('REDIS_USERNAME'),
+            password=env('REDIS_PASSWORD'),
+            decode_responses=True
+        )
+        dp = updater.dispatcher
+        conv_handler = ConversationHandler(
+            entry_points=[CommandHandler('start', start)],
+            states={
+                NEW_QUESTION_REQUEST: [
+                    MessageHandler(
+                        Filters.text & ~Filters.command,
+                        callback=lambda update, context: handle_new_question_request(update, context, redis_db, questions)
+                    )
+                ],
+                ANSWER: [
+                    MessageHandler(
+                        Filters.regex('^Give up$'),
+                        callback=lambda update, context: give_up(update, context, redis_db, questions)
+                    ),
+                    MessageHandler(
+                        Filters.text & ~Filters.command,
+                        callback=lambda update, context: handle_solution_attempt(update, context, redis_db, questions)
+                    ),
+                ],
+                GIVE_UP: [
+                    MessageHandler(
+                        Filters.text & ~Filters.command,
+                        callback=lambda update, context: give_up(update, context, redis_db, questions),
+                    ),
+                ],
+
+            },
+            fallbacks=[CommandHandler('cancel', cancel)]
+        )
+
+        dp.add_handler(conv_handler)
+        updater.start_polling()
+        updater.idle()
     except Exception as err:
         adm_logger.error(err, exc_info=True)
+
+
+if __name__ == '__main__':
+    main()
