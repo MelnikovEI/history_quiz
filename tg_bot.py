@@ -16,11 +16,6 @@ logger = logging.getLogger(__name__)
 NEW_QUESTION_REQUEST, ANSWER, GIVE_UP, END = range(4)
 
 
-def help_command(update: Update, context: CallbackContext) -> None:
-    """Send a message when the command /help is issued."""
-    update.message.reply_text('Help!')
-
-
 def start(update: Update, context: CallbackContext) -> int:
     reply_keyboard = [['New question']]
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
