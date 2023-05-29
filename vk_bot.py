@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from random import randrange, randint
+from random import randrange
 import redis
 import telegram
 import vk_api as vk
@@ -11,7 +11,7 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.utils import get_random_id
 
 from telegram_logs_handler import TelegramLogsHandler
-from tg_bot import extract_short_answer
+from extract_short_answer import extract_short_answer
 
 logger = logging.getLogger(__name__)
 

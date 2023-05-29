@@ -8,17 +8,12 @@ from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
 import redis
 
+from extract_short_answer import extract_short_answer
 from telegram_logs_handler import TelegramLogsHandler
 
 logger = logging.getLogger(__name__)
 
 NEW_QUESTION_REQUEST, ANSWER, GIVE_UP, END = range(4)
-
-
-def extract_short_answer(full_answer) -> str:
-    str_before_point = full_answer.split('.', maxsplit=1)[0]
-    str_before_bracket = str_before_point.split('(', maxsplit=1)[0]
-    return str_before_bracket
 
 
 def help_command(update: Update, context: CallbackContext) -> None:
@@ -85,7 +80,7 @@ def cancel(update: Update, context: CallbackContext) -> int:
 
 def main() -> None:
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.WARNING)
-    
+
     env = Env()
     env.read_env()
 
