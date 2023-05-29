@@ -51,9 +51,11 @@ def main() -> None:
         keyboard = VkKeyboard(one_time=False)
         keyboard.add_button('Новый вопрос', color=VkKeyboardColor.PRIMARY)
         keyboard.add_button('Сдаться', color=VkKeyboardColor.NEGATIVE)
-        status = NEW_QUESTION_REQUEST
+        status = {}
         longpoll = VkLongPoll(vk_session)
         for event in longpoll.listen():
+            if event.peer_id not in status:
+                status[event.peer_id] = NEW_QUESTION_REQUEST
             if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                 vk_api.messages.send(
                     peer_id=event.peer_id,
@@ -69,11 +71,11 @@ def main() -> None:
                         random_id=get_random_id(),
                         message=questions[question_number]['Вопрос']
                     )
-                    status = ANSWER
+                    status[event.peer_id] = ANSWER
                     logger.info("Question for %s: %s", event.user_id, question_number)
                     continue
 
-                if status == ANSWER:
+                if status[event.peer_id] == ANSWER:
                     user_question_number = redis_db.get(event.user_id)
                     right_answer = extract_short_answer(questions[int(user_question_number)]['Ответ'])
                     if event.text == "Сдаться":
@@ -82,7 +84,7 @@ def main() -> None:
                             random_id=get_random_id(),
                             message='Вы сдались. Вот правильный ответ:'
                         )
-                        status = GIVE_UP
+                        status[event.peer_id] = GIVE_UP
                         vk_api.messages.send(
                             peer_id=event.peer_id,
                             random_id=get_random_id(),
@@ -96,7 +98,7 @@ def main() -> None:
                             random_id=get_random_id(),
                             message='Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»'
                         )
-                        status = NEW_QUESTION_REQUEST
+                        status[event.peer_id] = NEW_QUESTION_REQUEST
                     else:
                         vk_api.messages.send(
                             peer_id=event.peer_id,
